@@ -1,0 +1,9 @@
+# Simulator data
+
+Simulator/
+
+# Ignore visual studio code data
+.vscode/
+
+# Ignore video data
+videos/
