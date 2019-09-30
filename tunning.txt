@@ -1,0 +1,21 @@
+
+First, it is important to know what all the parameters do:
+
+The P component is the responsible of making the controller look for the setpoint. The problem is, it does not consider how fast the process value is reaching the setpoint. So it will always oscilate, at least a bit. The status when that oscilation is big but not as big to make the system unstable is called "marginally stable". 
+
+The D component will minimize the oscilations because it controls the derivative of the error between the setpoint and the process value, controlling more agressively if the derivative is big and more softly if the derivative is small.
+
+The I component will minimize a possible offset the system may have. It controls the integral of the error between the setpoint and the process value, controlling more agressively if the error was always too big and more softly if the error was only a little bit too big at the beginning.
+
+The first step will be to make the Kp so big that the system is marginally stable and then tunning the d until the oscillations are not so strong. After some testing it was realized that this system is very sensible to parameter changes, so the parameters need to be very exact. Therefore I decided to use the twiddle optimization algorithm using some starting parameters which gave a "decent" response. These parameters were P = 0.035, I = 0.0, D = 0.2, dP = 0.001, dI = 0.0 and dD = 0.1 with a constant speed of 40 mph. Using twiddle for about 1 and a half hours reached the parameters P = 0.114543, I = 0.0, D = 0.0453001, dP = 0.0089543, dI = 0.0 and dD = 0.0161819. This reached a squared error of 0.657443, which is way better than the 14.5082 at the beginning. The next step is to search a good I parameter and use twiddle on I too.
+
+The speed was increased to 50 mph and the twiddle optimization algorithm was used with start parameters P = 0.123497, I = 0.0002, D = 0.061482, dP = 0.0089543, dI = 0.0001, dD = 0.0161819. After running the algorithm for 30 minutes, the new parameters are P = 0.142301, I = 0.0002, D = 0.0632458, dP = 0.00710865, dI = 5.9049e-05, dD = 0.0128465 reaching a quadratic error of 0.560109 while the starting error was 0.636512. It seems that the error will not get better and it seems that the oscilation of the speed has something to do, so it is time to sintonize the speed loop.
+
+After doing twiddle on the speed loop starting with P = 1.0, I = 0.001, D = 0.01, dP = 0.01, dI = 0.0001, dD = 0.01 with a speed of 50 mph the quadratic error on that loop decreased from 0.180206 to 0.112728 with parameters P = 0.1353848, I = 0.00177156, D = 0.0871561, dP = 0.00194872, dI = 0.000177156 and dD = 0.0177156.
+
+Then, another twiddle with the position controller was run starting with the parameters P = 0.5*0.142301, I = 0.0002, D = 0.7*0.0632458, dP = 0.005*0.00710865, dI = 5.9049e-05, dD = 0.5*0.0128465 but this time the speed setpoint was changed to (desired setpoint)*(1 - 0.5*abs(pos_error)), obtaining an error of 1.38337 but smaller oscillations. The new parameters obtained are P: 0.0711575, I: 0.0002, D: 0.0378488, dKp: 2.28559e-05, dKi: 2.8243e-05, dKd: 0.00375494.
+
+Lastly, another twiddle was done with the start parameters P: 0.0711575, I: 0.0002, D: 0.0378488, dKp: 2.28559e-05, dKi: 2.8243e-05, dKd: 0.00375494 starting with a quadratic error of 1.66747 which was reduced to 1.37455 with the end parameters P: 0.0707113, I: 0.0002, D: 0.0378488, dKp: 0.000219553, dKi: 1.35085e-05, dKd: 0.00161638. For this optimization, the speed setpoint was changed to (desired setpoint)*(1.0 - 0.7*std::min(5.0*abs(steer_value),1.0)), making a kind of cascade controller.
+
+
+

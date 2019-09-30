@@ -14,43 +14,35 @@ PID::PID() {
   this->tw_step = 0;
   this->time_log_initialized = false;
   this->reset_simulator = false;
+  this->err_last_cycle = 0.0;
+  this->err_sum = 0.0;
+  this->deadband = 0.0;
+  this->dt = 0.050;
 }
 
 PID::~PID() {}
 
-void PID::InitCoeffs(double Kp_, double Ki_, double Kd_, double p_change_, double i_change_, double d_change_) {
+void PID::InitCoeffs(double Kp_, double Ki_, double Kd_, double p_change_, double i_change_, double d_change_, double deadband_) {
   /**
    * TODO: Initialize PID coefficients (and errors, if needed)
    */
   this->Kp = Kp_;
   this->Ki = Ki_;
   this->Kd = Kd_;
+  this->Kp_best = Kp_;
+  this->Ki_best = Ki_;
+  this->Kd_best = Kd_;
   this->p_change = p_change_;
   this->i_change = i_change_;
   this->d_change = d_change_;
+  this->deadband = deadband_;
 }
 
-void PID::setLimits(double SP_min_, double SP_max_, double CV_min_, double CV_max_, double pert_min_, double pert_max_) {
+void PID::setLimits(double SP_min_, double SP_max_, double CV_min_, double CV_max_) {
   this->SP_min = SP_min_;
   this->SP_max = SP_max_;
   this->CV_min = CV_min_;
   this->CV_max = CV_max_;
-  this->pert_min = pert_min_;
-  this->pert_max = pert_max_;
-}
-
-void PID::UpdateError(double cte) {
-  /**
-   * TODO: Update PID errors based on cte.
-   */
-
-}
-
-double PID::TotalError() {
-  /**
-   * TODO: Calculate and return the total error
-   */
-  return 0.0;  // TODO: Add your tUpdate controllerotal error calc here!
 }
 
 void PID::setSP(double newSP) {
@@ -65,11 +57,16 @@ void PID::setSP(double newSP) {
   }
 }
 
-double PID::updateController(double currentPV, double pert) {
+double PID::updateController(double currentPV) {
   this->PV = currentPV;
   // The controller minimizes the error between the setpoint and 
   // the process value
-  this->err = this->SP - this->PV;
+  if (abs(this->SP - this->PV) < this->deadband) {
+    this->err = 0.0;
+  }
+  else {
+    this->err = this->SP - this->PV;
+  }
   // If this is the first cycle of the controller, the D component needs 
   // to be initialized
   if (!this->err_last_cycle_initialized) {
@@ -77,17 +74,15 @@ double PID::updateController(double currentPV, double pert) {
     this->err_last_cycle_initialized = true;
   }
   // D part of the controller
-  double diff_err = this->err - this->err_last_cycle;
+  double diff_err = (this->err - this->err_last_cycle)/this->dt;
   // I part of the controller
-  this->err_sum += this->err;
+  this->err_sum += this->err*this->dt;
   // Corresponds to the control error on the last cycle, which will be used
   // on the next cycle
   this->err_last_cycle = this->err;
 
   // The new CV is calculated with the three control components
   double newCV = (this->Kp*this->err + this->Kd*diff_err + this->Ki*this->err_sum);
-  // std::cout << "Control value: " << newCV_norm << std::endl;
-  // double newCV = scale(newCV_norm, 0.0, 100.0, this->CV_min, this->CV_max);
   
   if (newCV < this->CV_min) {
     this->CV = this->CV_min;
@@ -111,15 +106,15 @@ double PID::getQuadraticError(vector<double> errors) {
   return quadratic_error;
 }
 
-void PID::twiddleOpt(double currentPV, double tolerance) {
-  vector<double> coefficients {this->Kp, this->Ki, this->Kd};
-  vector<double> coeff_change {this->p_change, this->i_change, this->d_change};
+void PID::twiddleOpt(double currentPV, double tolerance, unsigned int paramOptimized) {
+  vector<double> coefficients {this->Kp, this->Kd, this->Ki};
+  vector<double> coeff_change {this->p_change, this->d_change, this->i_change};
   double sum_diffs = this->p_change + this->i_change + this->d_change;
   // The best error is calculated at the beginning using the start parameters of the
   // PID controller
   if (!this->twiddle_initialized) {
     // To calculate the best error, it collects 200 error points.
-    if (this->best_error_v.size() < 500) {
+    if (this->best_error_v.size() < 1000) {
       // But first, it waits 200 points in order to ignore the transient response of
       // the controller with the new parameters
       if (this->transient_best_error_ct < 200) {
@@ -155,7 +150,7 @@ void PID::twiddleOpt(double currentPV, double tolerance) {
         break;
       case 1:
         // It collects the 200 points ignoring the transient
-        if (this->error_step_1_v.size() < 500) {
+        if (this->error_step_1_v.size() < 1000) {
           if (this->transient_error_step_1_ct < 200) {
             this->transient_error_step_1_ct++;
           }
@@ -182,7 +177,13 @@ void PID::twiddleOpt(double currentPV, double tolerance) {
           this->best_error = this->error_step_1;
           coeff_change[tw_coeff] *= 1.1;
           this->tw_step = 0;
-          this->tw_coeff = (this->tw_coeff + 1)%3; 
+          this->tw_coeff = (this->tw_coeff + 1)%paramOptimized; 
+          // Saves the best coefficients
+          this->Kp_best = coefficients[0];
+          this->Kd_best = coefficients[1];
+          this->Ki_best = coefficients[2];
+          // And resets the integral part of the controller
+          this->err_sum = 0.0;
         }
         // Otherwise it moves on to the next step.
         else {
@@ -198,7 +199,7 @@ void PID::twiddleOpt(double currentPV, double tolerance) {
         break;
       case 4:
         // Again 200 points are collected ignoring the transient response and the quadratic error is calculated
-        if (this->error_step_2_v.size() < 500) {
+        if (this->error_step_2_v.size() < 1000) {
           if (this->transient_error_step_2_ct < 200) {
             this->transient_error_step_2_ct++;
           }
@@ -225,7 +226,13 @@ void PID::twiddleOpt(double currentPV, double tolerance) {
           this->best_error = this->error_step_2;
           coeff_change[tw_coeff] *= 1.1;
           this->tw_step = 0;
-          this->tw_coeff = (this->tw_coeff + 1)%3;
+          this->tw_coeff = (this->tw_coeff + 1)%paramOptimized;
+          // Saves the best coefficients
+          this->Kp_best = coefficients[0];
+          this->Kd_best = coefficients[1];
+          this->Ki_best = coefficients[2];
+          // And resets the integral part of the controller
+          this->err_sum = 0.0;
         }
         // Otherwise it moves on to the next step
         else {
@@ -240,17 +247,19 @@ void PID::twiddleOpt(double currentPV, double tolerance) {
         coefficients[this->tw_coeff] += coeff_change[this->tw_coeff];
         coeff_change[this->tw_coeff] *= 0.9;
         this->tw_step = 0;
-        this->tw_coeff = (this->tw_coeff + 1)%3;
+        this->tw_coeff = (this->tw_coeff + 1)%paramOptimized;
+        // And resets the integral part of the controller
+        this->err_sum = 0.0;
         break;     
     }
   }
   // The real parameters of the class are updated
   this->Kp = coefficients[0];
-  this->Ki = coefficients[1];
-  this->Kd = coefficients[2];
+  this->Kd = coefficients[1];
+  this->Ki = coefficients[2];
   this->p_change = coeff_change[0];
-  this->i_change = coeff_change[1];
-  this->d_change = coeff_change[2];
+  this->d_change = coeff_change[1];
+  this->i_change = coeff_change[2];
 }
 
 void PID::printParameters() {
@@ -259,7 +268,10 @@ void PID::printParameters() {
   std::cout << ", Kd: " << this->Kd;
   std::cout << ", dKp: " << this->p_change;
   std::cout << ", dKi: " << this->i_change;
-  std::cout << ", dKd: " << this->d_change;
+  std::cout << ", dKd: " << this->d_change << std::endl;
+  std::cout << "Kp best: " << this->Kp_best;
+  std::cout << ", Ki best: " << this->Ki_best;
+  std::cout << ", Kd best: " << this->Kd_best;
   std::cout << ", Best squared error: " << this->best_error << std::endl;
 }
 
@@ -293,21 +305,9 @@ void PID::printToCSV(string filename) {
   outputFile << this->Kd << " ";
   outputFile << this->p_change << " ";
   outputFile << this->i_change << " ";
-  outputFile << this->d_change << std::endl;
+  outputFile << this->d_change << " ";
+  outputFile << this->Kp_best << " ";
+  outputFile << this->Ki_best << " ";
+  outputFile << this->Kd_best << std::endl;
   outputFile.close();
-}
-
-double PID::scale(double in, double in_min, double in_max, double out_min, double out_max) {
-  double out;
-  if (in < in_min) {
-    out = out_min;
-  }
-  else if (in > in_max) {
-    out = out_max;
-  }
-  else {
-    double m = (out_max - out_min)/(in_max - in_min);
-    out = m*(in - in_min) + out_min;
-  }
-  return out;
 }
