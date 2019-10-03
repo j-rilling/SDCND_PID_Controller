@@ -60,28 +60,28 @@ include CMakeFiles/pid.dir/flags.make
 CMakeFiles/pid.dir/src/PID.cpp.o: CMakeFiles/pid.dir/flags.make
 CMakeFiles/pid.dir/src/PID.cpp.o: ../src/PID.cpp
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/mnt/data/Udacity/Self_driving_car_engineer/Project8/My_Project/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/pid.dir/src/PID.cpp.o"
-	/usr/bin/g++-7  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/pid.dir/src/PID.cpp.o -c /mnt/data/Udacity/Self_driving_car_engineer/Project8/My_Project/src/PID.cpp
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/pid.dir/src/PID.cpp.o -c /mnt/data/Udacity/Self_driving_car_engineer/Project8/My_Project/src/PID.cpp
 
 CMakeFiles/pid.dir/src/PID.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/pid.dir/src/PID.cpp.i"
-	/usr/bin/g++-7 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /mnt/data/Udacity/Self_driving_car_engineer/Project8/My_Project/src/PID.cpp > CMakeFiles/pid.dir/src/PID.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /mnt/data/Udacity/Self_driving_car_engineer/Project8/My_Project/src/PID.cpp > CMakeFiles/pid.dir/src/PID.cpp.i
 
 CMakeFiles/pid.dir/src/PID.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/pid.dir/src/PID.cpp.s"
-	/usr/bin/g++-7 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /mnt/data/Udacity/Self_driving_car_engineer/Project8/My_Project/src/PID.cpp -o CMakeFiles/pid.dir/src/PID.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /mnt/data/Udacity/Self_driving_car_engineer/Project8/My_Project/src/PID.cpp -o CMakeFiles/pid.dir/src/PID.cpp.s
 
 CMakeFiles/pid.dir/src/main.cpp.o: CMakeFiles/pid.dir/flags.make
 CMakeFiles/pid.dir/src/main.cpp.o: ../src/main.cpp
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/mnt/data/Udacity/Self_driving_car_engineer/Project8/My_Project/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/pid.dir/src/main.cpp.o"
-	/usr/bin/g++-7  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/pid.dir/src/main.cpp.o -c /mnt/data/Udacity/Self_driving_car_engineer/Project8/My_Project/src/main.cpp
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/pid.dir/src/main.cpp.o -c /mnt/data/Udacity/Self_driving_car_engineer/Project8/My_Project/src/main.cpp
 
 CMakeFiles/pid.dir/src/main.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/pid.dir/src/main.cpp.i"
-	/usr/bin/g++-7 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /mnt/data/Udacity/Self_driving_car_engineer/Project8/My_Project/src/main.cpp > CMakeFiles/pid.dir/src/main.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /mnt/data/Udacity/Self_driving_car_engineer/Project8/My_Project/src/main.cpp > CMakeFiles/pid.dir/src/main.cpp.i
 
 CMakeFiles/pid.dir/src/main.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/pid.dir/src/main.cpp.s"
-	/usr/bin/g++-7 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /mnt/data/Udacity/Self_driving_car_engineer/Project8/My_Project/src/main.cpp -o CMakeFiles/pid.dir/src/main.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /mnt/data/Udacity/Self_driving_car_engineer/Project8/My_Project/src/main.cpp -o CMakeFiles/pid.dir/src/main.cpp.s
 
 # Object files for target pid
 pid_OBJECTS = \

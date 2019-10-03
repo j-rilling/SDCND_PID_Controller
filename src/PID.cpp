@@ -1,7 +1,7 @@
 #include "PID.h"
 
 /**
- * TODO: Complete the PID class. You may add any additional desired functions.
+ * TODO (DONE): Complete the PID class. You may add any additional desired functions.
  */
 
 PID::PID() {
@@ -24,7 +24,7 @@ PID::~PID() {}
 
 void PID::InitCoeffs(double Kp_, double Ki_, double Kd_, double p_change_, double i_change_, double d_change_, double deadband_) {
   /**
-   * TODO: Initialize PID coefficients (and errors, if needed)
+   * TODO (DONE): Initialize PID coefficients (and errors, if needed)
    */
   this->Kp = Kp_;
   this->Ki = Ki_;
@@ -61,7 +61,7 @@ double PID::updateController(double currentPV) {
   this->PV = currentPV;
   // The controller minimizes the error between the setpoint and 
   // the process value
-  if (abs(this->SP - this->PV) < this->deadband) {
+  if (fabs(this->SP - this->PV) < this->deadband) {
     this->err = 0.0;
   }
   else {
@@ -100,7 +100,7 @@ double PID::updateController(double currentPV) {
 double PID::getQuadraticError(vector<double> errors) {
   double sum = 0.0;
   for (unsigned int i = 0; i < errors.size(); i++) {
-    sum += pow(errors[i],2);
+    sum += errors[i]*errors[i];
   }
   double quadratic_error = sum/static_cast<double>(errors.size());
   return quadratic_error;
@@ -147,6 +147,8 @@ void PID::twiddleOpt(double currentPV, double tolerance, unsigned int paramOptim
         coefficients[this->tw_coeff] += coeff_change[this->tw_coeff];
         this->tw_step++;
         reset_simulator = true;
+        // And resets the integral part of the controller
+        this->err_sum = 0.0;
         break;
       case 1:
         // It collects the 200 points ignoring the transient
@@ -182,8 +184,6 @@ void PID::twiddleOpt(double currentPV, double tolerance, unsigned int paramOptim
           this->Kp_best = coefficients[0];
           this->Kd_best = coefficients[1];
           this->Ki_best = coefficients[2];
-          // And resets the integral part of the controller
-          this->err_sum = 0.0;
         }
         // Otherwise it moves on to the next step.
         else {
@@ -196,6 +196,8 @@ void PID::twiddleOpt(double currentPV, double tolerance, unsigned int paramOptim
         coefficients[this->tw_coeff] -= 2.0*coeff_change[this->tw_coeff];
         this->tw_step++;
         reset_simulator = true;
+        // And resets the integral part of the controller
+        this->err_sum = 0.0;
         break;
       case 4:
         // Again 200 points are collected ignoring the transient response and the quadratic error is calculated
@@ -231,8 +233,6 @@ void PID::twiddleOpt(double currentPV, double tolerance, unsigned int paramOptim
           this->Kp_best = coefficients[0];
           this->Kd_best = coefficients[1];
           this->Ki_best = coefficients[2];
-          // And resets the integral part of the controller
-          this->err_sum = 0.0;
         }
         // Otherwise it moves on to the next step
         else {
@@ -248,8 +248,6 @@ void PID::twiddleOpt(double currentPV, double tolerance, unsigned int paramOptim
         coeff_change[this->tw_coeff] *= 0.9;
         this->tw_step = 0;
         this->tw_coeff = (this->tw_coeff + 1)%paramOptimized;
-        // And resets the integral part of the controller
-        this->err_sum = 0.0;
         break;     
     }
   }

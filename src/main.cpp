@@ -17,7 +17,7 @@ constexpr double pi() { return M_PI; }
 double deg2rad(double x) { return x * pi() / 180; }
 double rad2deg(double x) { return x * 180 / pi(); }
 
-// Gets the average of the last 100 values
+// Gets the average of the last n values
 double getLastAverage(list<double> values, unsigned int max_values_qt) {
   if (values.size() > max_values_qt) {
     values.pop_front();
@@ -60,18 +60,8 @@ int main() {
   // Twiddle second try (50 mph)
   // pid_pos.InitCoeffs(0.123497, 0.0002, 0.061482, 0.0089543, 0.0001, 0.0161819);
 
-  // Twiddle third try (50 mph)
-  // pid_pos.InitCoeffs(0.142301, 0.0002, 0.0632458, 0.00710865, 5.9049e-05, 0.0128465);
-
-  // Twiddle fourth try (70 mph variable)
-  // pid_pos.InitCoeffs(0.142301, 0.0002, 0.0632458, 0.00710865, 5.9049e-05, 0.0128465, 0.0);
-  // pid_pos.InitCoeffs(0.14941, 0.000140951, 0.0760923, 0.00633381, 5.84585e-05, 0.0114462, 0.0*0.001);
-  // pid_pos.InitCoeffs( 0.155047, 0.00263714, 0.0657907, 0.00682854, 5.72952e-04, 0.00917871, 0.0*0.001);
-  // pid_pos.InitCoeffs( 0.161876, 0.00206419, 0.0657907, 0.00608423, 0.000567222, 0.00743476, 0.0*0.001);
-  // pid_pos.InitCoeffs(0.7*0.16796, 0.00206419, 1.2*0.0657907, 0.7*0.00487894, 0.000413505, 1.2*0.00541994, 0.0*0.001);
-
-  // Twiddle position last parameters
-  pid_pos.InitCoeffs(0.120987, 0.00206419, 0.0574208, 0.00246483, 0.000244171, 0.00701195, 0.0);
+  // Twiddle third try (70 mph variable)
+  pid_pos.InitCoeffs(0.155743, 0.00206489, 0.0632458,  0.00411405, 4.64091e-05, 0.004977, 0.2);
 
   // Twiddle speed first try (50 mph)
   //pid_speed.InitCoeffs(0.1, 0.001, 0.01, 0.01, 0.0001, 0.01);
@@ -80,18 +70,19 @@ int main() {
   pid_speed.InitCoeffs(0.137334, 0.00137156, 0.0671561, 0.00194872, 0.000177156, 0.0177156, 0.0);
   pid_pos.setLimits(-5.0, 5.0, -1.0, 1.0);
   pid_speed.setLimits(0.0, 100.0, -1.0, 1.0);
-  string log_angle_name = "log_twiddle_final.csv";
-  string log_speed_name = "log_twiddle_speed_final.csv";
+  string log_angle_name = "../plots/log_twiddle_final_db.csv";
+  string log_speed_name = "../plots/log_twiddle_speed_tunned.csv";
 
-  bool optimize_position = true;
-  bool optimize_speed = false;
-  bool log_position = true;
-  bool log_speed = true;
+  bool optimize_position = false; // Make true to optimize position loop
+  bool optimize_speed = false;    // Make true to optimize speed loop
+  bool log_position = false;       // Make true to create a log of the position loop
+  bool log_speed = false;         // Make true to create a log of the speed loop
   
-  // Removes log to start a new one on this run of the program
+  // Removes logs to start new ones on this run of the program
   remove(log_angle_name.c_str());
+  remove(log_speed_name.c_str());
 
-  list<double> last_angles;
+  list<double> last_angles;       // List used for filtering the last steering angle values
   h.onMessage([&pid_pos, &pid_speed, &log_angle_name, &log_speed_name, &last_angles, &optimize_position, &optimize_speed, &log_position, &log_speed]
               (uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
@@ -116,10 +107,11 @@ int main() {
           double steer_value = pid_pos.updateController(cte);
 
           // Speed controller
-          last_angles.push_back(abs(steer_value));
+          last_angles.push_back(fabs(steer_value));
           double angle_avg = getLastAverage(last_angles, 5);
           double speed_setpoint = 70.0;
-          double speed_SP_corrected = speed_setpoint*(1.0 - 0.6*std::min(5.0*abs(angle_avg),1.0));
+          double speed_SP_corrected = speed_setpoint*(1.0 - 0.6*std::min(5.0*fabs(angle_avg),1.0));
+          // For debugging, the calculated speed setpoint
           std::cout << "Calculated speed setpoint: " << speed_SP_corrected << std::endl; 
           pid_speed.setSP(speed_SP_corrected);
           double throttle = pid_speed.updateController(speed);

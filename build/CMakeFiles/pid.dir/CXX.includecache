@@ -6,6 +6,10 @@
 
 #IncludeRegexTransform: 
 
+/mnt/data/Udacity/Self_driving_car_engineer/Project8/My_Project/src/PID.cpp
+PID.h
+/mnt/data/Udacity/Self_driving_car_engineer/Project8/My_Project/src/PID.h
+
 /mnt/data/Udacity/Self_driving_car_engineer/Project8/My_Project/src/PID.h
 vector
 -
