@@ -18,38 +18,47 @@ Therefore I decided to use a cascade control structure which can be explained be
 ### Control theory 
 In order to understand this project, some concepts of control theory need to be explained. Before tunning a PID control loop it needs to be understood how this controller works and what the parameters are for.
 
-The P component is the one responsible of making the controller to look for the setpoint (desired value). It adds to the controller output a number proportional to the difference between the setpoint and the current value (also called process value PV), this difference will be called from here on control error.  The optimal P parameter for a system can be found analytically, but this can only be done if the mathematical model is linear and completely known. A controller with only a P section can hardly control any system and therefore PI, PD or PID are normally used. At the same time, a controller without a P part would also not work. In the case of the position loop of this system, a pure P controller will oscillate with any given parameter because of the disturbances caused by the street curves.
+The P component is the one responsible of making the controller to look for the setpoint (desired value). It adds to the controller output a number proportional to the difference between the setpoint and the current value (also called process value PV), this difference will be called from here on control error.  The optimal P parameter for a system can be found analytically, but this can only be done if the mathematical model is linear and completely known. A controller with a P part section can hardly control any system and therefore PI, PD or PID are normally used. At the same time, a controller without a P section would also not work. In the case of the position loop of this system, a pure P controller will oscillate with any given parameter because of the disturbances caused by the street curves.
 
-The D component is the one responsible of minimizing the oscillations of the controller. It adds to the controller output a number proportional to the derivative of the control error at that time, making the controller output bigger if the error is moving rapidly and smaller in the contrary case. Doing this it gives more weight to larger changes on the controller value, acting as a kind of low pass filter. In the case of the position loop, the D parameter will minimize the oscillations caused by the curves, making the system more stable.
+The D component is the one responsible of minimizing the oscillations of the system. It adds to the controller output a number proportional to the derivative of the control error at that time, making the controller output bigger if the error is moving rapidly and smaller in the contrary case. Doing this it gives more weight to larger changes on the controller value, acting as a kind of low pass filter. In the case of the position loop, the D parameter will minimize the oscillations caused by the curves, making the system more stable.
 
 The I component is the one responsible of minimizing a possible offset on the process value of the controller. There are cases when a controller might control a process very well, but the process value will always be an offset far away from the setpoint. This can be caused by the process itself or by the initial conditions of the system. The I component adds to the controller output a number proportional to the integral of the control error, making control outputs where this integral is bigger stronger and viceversa.
 
 The difference between the effect of the different parameters can be visualized on the following gif:
-![](https://en.wikipedia.org/wiki/PID_controller#/media/File:PID_Compensation_Animated.gif) 
+![](https://upload.wikimedia.org/wikipedia/commons/3/33/PID_Compensation_Animated.gif) 
 
-As explained above, it can be seen how the P controller oscillates very strongly, while the PD corrects those oscillations. 
+As explained above, it can be seen how the P controller oscillates very strongly and does not reach the setpoint, the I helps to reach the setpoint making the offset smaller but it also causes even bigger oscillations and the D corrects those oscillations. 
 
 The general formula of a PID controller is the following:
 
-$$ CV(t) = K_{p} \cdot err(t)  + K_{d}\frac{d}{dt}(err(t))  + K_{i} \int err(t) dt      (1)$$
-Where: 
-$$ err(t) = (SP(t) - PV(t))   (2) $$
-or:
-$$ err(t) = (PV(t) - SP(t))   (3) $$
+<a href="https://www.codecogs.com/eqnedit.php?latex=$$&space;CV(t)&space;=&space;K_{p}&space;\cdot&space;err(t)&space;&plus;&space;K_{d}\frac{d}{dt}(err(t))&space;&plus;&space;K_{i}&space;\int&space;err(t)&space;dt&space;(1)$$" target="_blank"><img src="https://latex.codecogs.com/gif.latex?$$&space;CV(t)&space;=&space;K_{p}&space;\cdot&space;err(t)&space;&plus;&space;K_{d}\frac{d}{dt}(err(t))&space;&plus;&space;K_{i}&space;\int&space;err(t)&space;dt&space;(1)$$" title="$$ CV(t) = K_{p} \cdot err(t) + K_{d}\frac{d}{dt}(err(t)) + K_{i} \int err(t) dt (1)$$" /></a>
 
-$CV(t)$ : Control value, the output of the controller which is used on the actuator (throttle and steering angle in this system).
-$PV(t)$ : Process value, corresponds to the current value of the variable being controlled (Current speed and position on lane in this system)
-$SP(t)$ : Setpoint, corresponds to the desired value of the variable being controlled.
-$err(t)$ : Control error, as seen on the equations (2) and (3), corresponds to the difference between the setpoint and the process value or to the difference between the process value and the setpoint. In the case of both control loops of this system the equation (2) is used.
-$K_{p}, K_{d} and K_{i}$ correspond to the parameters of a PID controller.
+Where: 
+
+<a href="https://www.codecogs.com/eqnedit.php?latex=$$&space;err(t)&space;=&space;(SP(t)&space;-&space;PV(t))&space;(2)&space;$$" target="_blank"><img src="https://latex.codecogs.com/gif.latex?$$&space;err(t)&space;=&space;(SP(t)&space;-&space;PV(t))&space;(2)&space;$$" title="$$ err(t) = (SP(t) - PV(t)) (2) $$" /></a>
+
+or:
+
+<a href="https://www.codecogs.com/eqnedit.php?latex=$$&space;err(t)&space;=&space;(PV(t)&space;-&space;SP(t))&space;(3)&space;$$" target="_blank"><img src="https://latex.codecogs.com/gif.latex?$$&space;err(t)&space;=&space;(PV(t)&space;-&space;SP(t))&space;(3)&space;$$" title="$$ err(t) = (PV(t) - SP(t)) (3) $$" /></a>
+
+<a href="https://www.codecogs.com/eqnedit.php?latex=\inline&space;$CV(t)$" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\inline&space;$CV(t)$" title="$CV(t)$" /></a> : Control value, the output of the controller which is used on the actuator (throttle and steering angle in this system).
+
+<a href="https://www.codecogs.com/eqnedit.php?latex=\inline&space;$PV(t)$" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\inline&space;$PV(t)$" title="$PV(t)$" /></a> : Process value, corresponds to the current value of the variable being controlled (Current speed and position on lane in this system).
+
+<a href="https://www.codecogs.com/eqnedit.php?latex=\inline&space;$SP(t)$" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\inline&space;$SP(t)$" title="$SP(t)$" /></a> : Setpoint, corresponds to the desired value of the variable being controlled.
+
+<a href="https://www.codecogs.com/eqnedit.php?latex=\inline&space;$err(t)$" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\inline&space;$err(t)$" title="$err(t)$" /></a> : Control error, as seen on the equations (2) and (3), corresponds to the difference between the setpoint and the process value or to the difference between the process value and the setpoint. In the case of both control loops of this system the equation (2) is used.
+
+<a href="https://www.codecogs.com/eqnedit.php?latex=\inline&space;$K_{p}$" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\inline&space;$K_{p}$" title="$K_{p}$" /></a>, <a href="https://www.codecogs.com/eqnedit.php?latex=\inline&space;$K_{d}$" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\inline&space;$K_{d}$" title="$K_{d}$" /></a> and <a href="https://www.codecogs.com/eqnedit.php?latex=\inline&space;$K_{i}$" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\inline&space;$K_{i}$" title="$K_{i}$" /></a> correspond to the parameters of a PID controller.
 
 Since a PID controller is executed on a computer, a discrete version of the equation (1) needs to be used. this equation would be:
 
-$$ CV(k\Delta t) = K_{p}err(k\Delta t)  + \frac{K_{d}}{\Delta t}(err(k\Delta t) - err((k - 1)\Delta t)))  + K_{i} \Delta t \sum_{i=0}^k err(i\Delta t))  (4)$$
+<a href="https://www.codecogs.com/eqnedit.php?latex=$$&space;CV(k\Delta&space;t)&space;=&space;K_{p}err(k\Delta&space;t)&space;&plus;&space;\frac{K_{d}}{\Delta&space;t}(err(k\Delta&space;t)&space;-&space;err((k&space;-&space;1)\Delta&space;t)))&space;&plus;&space;K_{i}&space;\Delta&space;t&space;\sum_{i=0}^k&space;err(i\Delta&space;t))&space;(4)$$" target="_blank"><img src="https://latex.codecogs.com/gif.latex?$$&space;CV(k\Delta&space;t)&space;=&space;K_{p}err(k\Delta&space;t)&space;&plus;&space;\frac{K_{d}}{\Delta&space;t}(err(k\Delta&space;t)&space;-&space;err((k&space;-&space;1)\Delta&space;t)))&space;&plus;&space;K_{i}&space;\Delta&space;t&space;\sum_{i=0}^k&space;err(i\Delta&space;t))&space;(4)$$" title="$$ CV(k\Delta t) = K_{p}err(k\Delta t) + \frac{K_{d}}{\Delta t}(err(k\Delta t) - err((k - 1)\Delta t))) + K_{i} \Delta t \sum_{i=0}^k err(i\Delta t)) (4)$$" /></a>
 
 Where:
-$k$ : Time step being executed.
-$ \Delta t $ : Time length between executions of the PID controller.
+<a href="https://www.codecogs.com/eqnedit.php?latex=\inline&space;$k$" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\inline&space;$k$" title="$k$" /></a> : Time step being executed.
+
+<a href="https://www.codecogs.com/eqnedit.php?latex=\inline&space;$&space;\Delta&space;t&space;$" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\inline&space;$&space;\Delta&space;t&space;$" title="$ \Delta t $" /></a> : Time length between executions of the PID controller.
 
 This one is the equation used on the algorithm within the method "updateController" of the "PID" class.
 
@@ -126,7 +135,7 @@ It can be seen that the oscillations became a little bit smaller, but the amplit
 
 The PID controller is a very strong tool used to control many processes. It works very well on controlling temperature, flow or liquid level, since these processes are more simple because mostly they do not depend on other variables. In the case of this system, as said before, the position and speed processes are strongly coopled, making it very difficult to control with PID controllers, also the curves of the street are disturbances that make the controlling process even more difficult.
 
-For the control of this process a more advanced technique like [model predictive controller](https://en.wikipedia.org/wiki/Model_predictive_control) , [fuzzy logic controller](https://en.wikipedia.org/wiki/Fuzzy_control_system)  or even a neural network like on the [project 4 (Behavioral cloning) ](https://github.com/j-rilling/SDCND_Behavioral_Cloning) will work better. 
+For the control of this process a more advanced technique like [model predictive controller](https://en.wikipedia.org/wiki/Model_predictive_control) , [fuzzy logic controller](https://en.wikipedia.org/wiki/Fuzzy_control_system)  or even a neural network like on the [project 4 (Behavioral cloning) ](https://github.com/j-rilling/SDCND_Behavioral_Cloning) would work better. 
 
 ### How to use
 The software is already compiled in this repository in the folder "build", but here is explained how it can be compiled again:
